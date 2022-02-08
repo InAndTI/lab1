@@ -80,8 +80,9 @@ HashTable::List* HashTable::add_list(const Key &k, const Value &v) {
 }
 
 bool HashTable::insert(const Key& k, const Value& v){
+    size_t old_size = size_;
     List* tmp = add_list(k, v);
-    if (tmp->value != v) {
+    if (size_ == old_size) {
         tmp->value = v;
         return false;
     }
