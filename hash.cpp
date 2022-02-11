@@ -4,7 +4,7 @@
 
 struct HashTable::List {
     // CR: use reference
-    List(Key  k,Value  v): key(std::move(k)), value(std::move(v)) {}
+    List(const Key&  k,const Value&  v): key(k), value(v) {}
 
     Key key;
     Value value;
@@ -47,10 +47,12 @@ HashTable& HashTable::operator=(const HashTable& b) {
 // Copy other hashtable
 void HashTable::copy(const HashTable &b) {
     // CR: same optimization
-    for (int i = 0; i < b.capacity_; i++) {
+    size_t b_size = b.size_;
+    for (int i = 0; i < b.capacity_&&b_size!=0; i++) {
         if (b.data[i])
             for (List *tmp = b.data[i]; tmp; tmp = tmp->next) {
                 add_list(tmp->key, tmp->value);
+                b_size--;
             }
     }
 }
@@ -75,7 +77,7 @@ HashTable::List* HashTable::add_list(const Key &k, const Value &v) {
     if (tmp->key != k) {
         tmp->next = new List(k, v);
         size_++;
-        return tmp;
+        return tmp->next;
     }
 
     return tmp;
@@ -124,14 +126,14 @@ const Value& HashTable::at(const Key& k) const{
 
 void HashTable::clear(){
     // CR: optimization: size_ == 0
-    for (int i = 0; i < capacity_; i++){
+    for (int i = 0; i < capacity_&&size_!=0; i++){
         while (data[i] != nullptr) {
             List* tmp = data[i]->next;
             delete data[i];
             data[i] = tmp;
+            size_--;
         }
     }
-    size_ = 0;
 }
 
 bool HashTable::erase(const Key& k){
@@ -218,18 +220,18 @@ void HashTable::resize() {
 bool operator==(const HashTable& a, const HashTable& b){
     if (a.size() != b.size())
         return false;
-
+      size_t b_size = b.size_;
     HashTable::List* a_list;
     HashTable::List* b_list;
 
     // CR: count size
-    for (int i = 0; i < a.capacity_; ++i) {
+    for (int i = 0; i < a.capacity_&&b_size!=0; ++i) {
         for (a_list = a.data[i]; a_list; a_list = a_list->next) {
             if (b.data[b.hash_func(a_list->key)] == nullptr)
                 return false;
 
             for (b_list = b.data[b.hash_func(a_list->key)]; b_list->next && b_list->key != a_list->key; b_list = b_list->next) {}
-
+             b_size--;
             if (b_list->key != a_list->key || a_list->value != b_list->value)
                 return false;
         }
