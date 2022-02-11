@@ -3,6 +3,7 @@
 #include "hashtable.h"
 
 struct HashTable::List {
+    // CR: use reference
     List(Key  k,Value  v): key(std::move(k)), value(std::move(v)) {}
 
     Key key;
@@ -28,15 +29,15 @@ HashTable::~HashTable(){
     delete[] data;
 }
 
-HashTable::HashTable(const HashTable& b) : capacity_(b.capacity_), data(new List*[capacity_]()), size_(){
+HashTable::HashTable(const HashTable& b) : capacity_(b.capacity_), data(new List*[capacity_]()), size_(0){
     copy(b);
 }
 
 HashTable& HashTable::operator=(const HashTable& b) {
     if (this != &b) {
         clear();
-        capacity_ = b.capacity_;
         delete [] data;
+        capacity_ = b.capacity_;
         data = new List*[capacity_]();
         copy(b);
     }
@@ -45,6 +46,7 @@ HashTable& HashTable::operator=(const HashTable& b) {
 
 // Copy other hashtable
 void HashTable::copy(const HashTable &b) {
+    // CR: same optimization
     for (int i = 0; i < b.capacity_; i++) {
         if (b.data[i])
             for (List *tmp = b.data[i]; tmp; tmp = tmp->next) {
@@ -91,6 +93,7 @@ bool HashTable::insert(const Key& k, const Value& v){
 }
 
 Value& HashTable::operator[](const Key& k){
+    // CR: bug when insert new default Value()
     return add_list(k, Value())->value;
 }
 
@@ -120,6 +123,7 @@ const Value& HashTable::at(const Key& k) const{
 }
 
 void HashTable::clear(){
+    // CR: optimization: size_ == 0
     for (int i = 0; i < capacity_; i++){
         while (data[i] != nullptr) {
             List* tmp = data[i]->next;
@@ -218,6 +222,7 @@ bool operator==(const HashTable& a, const HashTable& b){
     HashTable::List* a_list;
     HashTable::List* b_list;
 
+    // CR: count size
     for (int i = 0; i < a.capacity_; ++i) {
         for (a_list = a.data[i]; a_list; a_list = a_list->next) {
             if (b.data[b.hash_func(a_list->key)] == nullptr)
