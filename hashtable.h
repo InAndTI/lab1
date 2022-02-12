@@ -48,6 +48,8 @@ public:
     bool empty() const;
 
     // Return result comparison two hashtable by keys and values
+    // Return true in operator== if two hashtable equals
+     // operator!= inverse for operator==
     // CR: specify what happens in ==
     friend bool operator==(const HashTable& a, const HashTable& b);
     friend bool operator!=(const HashTable& a, const HashTable& b);
@@ -55,9 +57,9 @@ private:
     struct List;
 
     // CR: static
-    const int PRIME = 7;
+    static constexpr int PRIME = 7;
     // CR: static
-    const int DEFAULT_CAPACITY = 8;
+    static constexpr int DEFAULT_CAPACITY = 8;
 
     // CR: init with DEFAULT_CAPACITY
     size_t capacity_;
